@@ -3,140 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎮 PlayFun Games Hub</title>
+  <title>🎮 HTML Games Hub</title>
   <style>
     body {
-      font-family: "Inter", "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top left, #1f2937, #0f172a);
-      color: #f9fafb;
+      background: #0f172a;
+      color: #f1f5f9;
+      font-family: "Inter", sans-serif;
       margin: 0;
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
     }
-
-    header {
-      text-align: center;
-      padding: 2rem 1rem 1rem;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      color: #facc15;
-      margin-bottom: 0.3rem;
-    }
-
+    header { text-align: center; margin: 2rem 0 1rem; }
+    h1 { font-size: 2.5rem; color: #facc15; margin-bottom: 0.3rem; }
     input {
-      width: 280px;
-      padding: 0.6rem 1rem;
+      background: #1e293b; color: #f1f5f9;
+      border: 1px solid #334155;
       border-radius: 12px;
-      border: none;
+      padding: 0.6rem 1rem;
       font-size: 1rem;
-      margin-bottom: 1.5rem;
+      width: 280px;
       outline: none;
-      box-shadow: 0 0 0 2px #374151;
-      background: #111827;
-      color: #f9fafb;
-      transition: box-shadow 0.2s ease;
+      margin-bottom: 1.5rem;
     }
-
-    input:focus {
-      box-shadow: 0 0 0 2px #facc15;
-    }
-
     .game-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
       width: 90%;
       max-width: 900px;
-      padding-bottom: 3rem;
     }
-
     .game-card {
-      background: #374151;
+      background: #1e293b;
       border-radius: 16px;
-      padding: 1rem;
       text-align: center;
-      cursor: pointer;
+      padding: 1rem;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
-      text-decoration: none;
-      color: inherit;
     }
-
     .game-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      transform: translateY(-5px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
-
     .game-card img {
       width: 100%;
       height: 150px;
-      border-radius: 12px;
       object-fit: cover;
-      margin-bottom: 1rem;
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
     }
-
-    footer {
-      padding: 1rem;
-      color: #9ca3af;
-      font-size: 0.9rem;
-      border-top: 1px solid #374151;
-      margin-top: auto;
-      text-align: center;
-      width: 100%;
-    }
+    footer { text-align: center; padding: 1rem; color: #94a3b8; margin-top: auto; }
   </style>
 </head>
 <body>
   <header>
-    <h1>🎮 PlayFun Games</h1>
-    <p>Explore and play instantly — no downloads required!</p>
+    <h1>🎮 HTML Games Hub</h1>
+    <p>Play instantly — free browser games!</p>
     <input type="text" id="search" placeholder="Search games..." />
   </header>
 
-  <main class="game-grid" id="gameGrid"></main>
+  <main class="game-grid" id="grid"></main>
 
-  <footer>© 2025 PlayFun Games — Powered by GitHub & Vercel</footer>
+  <footer>© 2025 HTML Games Hub</footer>
 
   <script>
-    const gameList = [
-      { title: "2048", path: "2048", img: "https://upload.wikimedia.org/wikipedia/commons/8/8a/2048_logo.svg" },
-      { title: "Snake", path: "Snake", img: "https://upload.wikimedia.org/wikipedia/commons/5/55/Snake_game_logo.png" },
-      { title: "Flappy Bird", path: "FlappyBird", img: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Flappy_Bird_logo.png" },
-      // ✅ 将来新增游戏时，只需在这里加一行
-    ];
+    // 自动扫描所有目录（通过 fetch 读取 GitHub 目录 JSON）
+    const repoUser = "chaifly";
+    const repoName = "html-css-javascript-games";
+    const apiUrl = `https://api.github.com/repos/${repoUser}/${repoName}/contents/`;
 
-    const grid = document.getElementById("gameGrid");
+    const grid = document.getElementById("grid");
     const search = document.getElementById("search");
 
-    function renderGames(filter = "") {
+    async function loadGames() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      let games = data
+        .filter(item => item.type === "dir" && !item.name.startsWith("."))
+        .map(item => ({
+          title: item.name.replace(/-/g, " "),
+          path: item.name,
+          img: `https://raw.githubusercontent.com/${repoUser}/${repoName}/main/${item.name}/thumbnail.jpg`
+        }));
+      render(games);
+
+      search.addEventListener("input", e => {
+        const q = e.target.value.toLowerCase();
+        const filtered = games.filter(g => g.title.toLowerCase().includes(q));
+        render(filtered);
+      });
+    }
+
+    function render(list) {
       grid.innerHTML = "";
-      const filtered = gameList.filter(g =>
-        g.title.toLowerCase().includes(filter.toLowerCase())
-      );
-      if (filtered.length === 0) {
-        grid.innerHTML = "<p>No games found.</p>";
-        return;
-      }
-      filtered.forEach(g => {
+      list.forEach(g => {
         const card = document.createElement("a");
         card.href = `./${g.path}/`;
         card.className = "game-card";
         card.innerHTML = `
-          <img src="${g.img}" alt="${g.title}">
+          <img src="${g.img}" onerror="this.src='https://placehold.co/300x150?text=${g.title}'">
           <h2>${g.title}</h2>
         `;
         grid.appendChild(card);
       });
     }
 
-    search.addEventListener("input", e => {
-      renderGames(e.target.value);
-    });
-
-    renderGames();
+    loadGames();
   </script>
 </body>
 </html>
